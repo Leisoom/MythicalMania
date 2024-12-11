@@ -3,7 +3,6 @@ import isodate
 import os
 API_KEY = os.environ["API_KEY"];
 
-
 API_SERVICE_NAME = 'youtube'
 API_VERSION = 'v3'
 
