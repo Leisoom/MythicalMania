@@ -1,22 +1,36 @@
 from googleapiclient.discovery import build
 import isodate
 import os
-API_KEY = os.environ["API_KEY"];
+import environ
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+API_KEY = env('API_KEY');
 
 API_SERVICE_NAME = 'youtube'
 API_VERSION = 'v3'
 
+
 youtube = build(API_SERVICE_NAME, API_VERSION, developerKey=API_KEY)
 
-def generate_season(playlist_id):
+#generate
+
+#generate season using a playlist Id
+def generate_season(playlist_id, series_id, is_Active = False):
     # get playlist meta data
     request = youtube.playlists().list(
         part="snippet", 
         id=playlist_id
     )
     response = request.execute()
-
-
 
     # get video meta data
     nextPageToken = None;
@@ -77,8 +91,50 @@ def batch(resource_list, chunk_size):
   for i in range(0, len(resource_list), chunk_size):
     yield resource_list[i:i + chunk_size]
 
+def get_channel_details(channel_id):
+    request = youtube.channels().list(
+        part="brandingSettings,snippet,contentDetails,statistics", 
+        id=channel_id
+    )
+    response = request.execute()
+
+    #General Info via Snippet
+    #handle
+    print(response['items'][0]['snippet']['customUrl'])
+    #description
+    print(response['items'][0]['snippet']['localized']['description'])
+    #formatted title
+    print(response['items'][0]['snippet']['localized']['title'])
+    #channel created date
+    print(response['items'][0]['snippet']['publishedAt'])
+    #update to dynamically grab highest res thumbnail
+    #channel icon
+    print(response['items'][0]['snippet']['thumbnails']['high']['url'])
+    
+    #Stats for nerds
+    #subcount
+    print(response['items'][0]['statistics']['subscriberCount'])
+    #view count
+    print(response['items'][0]['statistics']['videoCount'])
+    #rounded subcount
+    print(response['items'][0]['statistics']['viewCount'])
+
+    #contentDetails (get latest video playlist for displaying latests videos)
+    #latest uploads playlist
+    print(response['items'][0]['contentDetails']['relatedPlaylists']['uploads'])
+
+    # branding media
+    #trailer for channel
+    print(response['items'][0]['brandingSettings']['channel']['unsubscribedTrailer'])
+
+    #external banner (use possibly for background)
+    print(response['items'][0]['brandingSettings']['image']['bannerExternalUrl'])
+
+
 playlist_id = 'PLJ49NV73ttrv2fkUJ6JIoCBeu8fKI4-Dd'  
-generate_season(playlist_id)
+channel_id = "UC4PooiX37Pld1T8J5SYT-SQ"
+#generate_season(playlist_id)
+get_channel_details(channel_id);
 
 
 # Add YouTube Channel
